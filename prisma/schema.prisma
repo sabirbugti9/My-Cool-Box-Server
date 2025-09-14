@@ -1,0 +1,168 @@
+// schema.prisma remains the same with Coupon model
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  name        String
+  email       String    @unique
+  password    String
+  phoneNumber String    @unique
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt
+  ban         Boolean   @default(false)
+  deletedAt   DateTime?
+  orders      Order[]
+  payments    Payment[]
+}
+
+model Beverage {
+  id             Int             @id @default(autoincrement())
+  nameEn         String
+  nameAr         String
+  image          String
+  price          Float
+  quantityEn     String
+  quantityAr     String
+  stocks         Int
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  orderBeverages OrderBeverage[]
+}
+
+model Fruit {
+  id          Int          @id @default(autoincrement())
+  nameEn      String
+  nameAr      String
+  image       String
+  price       Float
+  quantityEn  String
+  quantityAr  String
+  stocks      Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  orderFruits OrderFruit[]
+}
+
+model Accessory {
+  id               Int              @id @default(autoincrement())
+  nameEn           String
+  nameAr           String
+  image            String
+  price            Float
+  quantityEn       String
+  quantityAr       String
+  stocks           Int
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  orderAccessories OrderAccessory[]
+}
+
+model Order {
+  id               Int              @id @default(autoincrement())
+  orderNumber      String           @unique
+  userId           Int
+  hours            Int              @default(1)
+  isEmpty          Boolean          @default(false)
+  place            String           @default("")
+  total            Float            @default(0.0)
+  status           OrderStatus      @default(PENDING)
+  couponId         Int?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  user             User             @relation(fields: [userId], references: [id])
+  coupon           Coupon?          @relation(fields: [couponId], references: [id])
+  orderBeverages   OrderBeverage[]
+  orderFruits      OrderFruit[]
+  orderAccessories OrderAccessory[]
+  payments         Payment[]
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
+}
+
+model OrderBeverage {
+  id         Int      @id @default(autoincrement())
+  orderId    Int
+  beverageId Int
+  quantity   Int
+  quantityEn String
+  quantityAr String
+  price      Float
+  order      Order    @relation(fields: [orderId], references: [id])
+  beverage   Beverage @relation(fields: [beverageId], references: [id])
+}
+
+model OrderFruit {
+  id         Int    @id @default(autoincrement())
+  orderId    Int
+  fruitId    Int
+  quantity   Int
+  quantityEn String
+  quantityAr String
+  price      Float
+  order      Order  @relation(fields: [orderId], references: [id])
+  fruit      Fruit  @relation(fields: [fruitId], references: [id])
+}
+
+model OrderAccessory {
+  id          Int       @id @default(autoincrement())
+  orderId     Int
+  accessoryId Int
+  quantity    Int
+  quantityEn  String
+  quantityAr  String
+  price       Float
+  order       Order     @relation(fields: [orderId], references: [id])
+  accessory   Accessory @relation(fields: [accessoryId], references: [id])
+}
+
+model Payment {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  orderId       Int
+  transactionId String   @unique
+  titleEn       String
+  titleAr       String
+  descriptionEn String
+  descriptionAr String
+  amount        Float
+  categoryEn    String
+  categoryAr    String
+  type          String // "debit" or "credit"
+  status        String   @default("Pending")
+  createdAt     DateTime @default(now())
+  user          User     @relation(fields: [userId], references: [id])
+  order         Order    @relation(fields: [orderId], references: [id])
+}
+
+model Coupon {
+  id        Int      @id @default(autoincrement())
+  code      String   @unique
+  type      String
+  value     Int
+  minAmount Int
+  expiry    DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  Order     Order[]
+}
+
+model StaticContent {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  contentEn String   @db.LongText
+  contentAr String   @db.LongText
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
