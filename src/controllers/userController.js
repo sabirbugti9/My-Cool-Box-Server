@@ -107,6 +107,7 @@ export const loginUser = async (req, res) => {
                 id: user.id,
                 email: user.email,
                 phoneNumber: user.phoneNumber,
+                profilePicture: user.profilePicture,
                 ban: user.ban,
                 name: user.name,
                 createdAt: user.createdAt
@@ -144,8 +145,8 @@ export const sendOTPThroughPhoneNumber = async (req, res) => {
         // Send SMS via Twilio
         const message = await twilioClient.messages.create({
             body: `Your OTP code is ${otp}. It will expire in 10 minutes.`,
-            from: "+15005550006",
-            to: "+923239968789",
+            from: "+17408808388",
+            to: phoneNumber,
         });
         console.log("OTP sent successfully. SID:", message);
         res.status(200).json({
@@ -248,5 +249,48 @@ export const undoDeleteAccount = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Failed to undo account deletion' });
+    }
+};
+export const updateProfile = async (req, res) => {
+    try {
+        const userId = req.userId;
+        const { name, email } = req.body;
+        let profilePicture;
+
+        // If a file is uploaded, set the profilePicture to the file path
+        if (req.file) {
+            profilePicture = req.file.path;
+        }
+
+        // Check if email is already taken by another user
+        if (email) {
+            const existingUser = await prisma.user.findUnique({
+                where: { email }
+            });
+            if (existingUser && existingUser.id !== parseInt(userId)) {
+                return res.status(400).json({ error: 'Email already taken' });
+            }
+        }
+
+        const updatedUser = await prisma.user.update({
+            where: { id: parseInt(userId) },
+            data: {
+                ...(name && { name }),
+                ...(email && { email }),
+                ...(profilePicture && { profilePicture })
+            }
+        });
+
+        // Remove sensitive data
+        const { password, ...userWithoutPassword } = updatedUser;
+        const token = req.header('Authorization')?.replace('Bearer ', '');
+        res.json({
+            message: 'Profile updated successfully',
+            user: userWithoutPassword,
+            token,
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 };

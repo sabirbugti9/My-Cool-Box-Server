@@ -1,5 +1,6 @@
 import express from 'express';
 import { body, validationResult } from 'express-validator';
+import upload from '../utils/upload.js';
 
 import {
     registerUser,
@@ -11,6 +12,7 @@ import {
     verifyPhoneOTP,
     deleteAccount,
     undoDeleteAccount,
+    updateProfile
 } from '../controllers/userController.js';
 
 import { auth } from "../middleware/auth.js";
@@ -38,7 +40,7 @@ router.post('/login', async (req, res) => {
 router.post('/reset-password', resetPassword);
 router.put('/active_account', auth, undoDeleteAccount);
 router.delete('/delete_account', auth, deleteAccount);
-
+router.put('/profile', auth, upload.single('profilePicture'), updateProfile);
 
 
 

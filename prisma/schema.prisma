@@ -1,12 +1,11 @@
-// schema.prisma remains the same with Coupon model
-datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
-  referentialIntegrity = "prisma"
-}
-
 generator client {
   provider = "prisma-client-js"
+}
+
+datasource db {
+  provider     = "mysql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model User {
@@ -14,6 +13,7 @@ model User {
   name        String
   email       String    @unique
   password    String
+  profilePicture    String
   phoneNumber String    @unique
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt
@@ -72,7 +72,7 @@ model Order {
   hours            Int              @default(1)
   isEmpty          Boolean          @default(false)
   place            String           @default("")
-  total            Float            @default(0.0)
+  total            Float            @default(0)
   status           OrderStatus      @default(PENDING)
   couponId         Int?
   createdAt        DateTime         @default(now())
@@ -83,13 +83,6 @@ model Order {
   orderFruits      OrderFruit[]
   orderAccessories OrderAccessory[]
   payments         Payment[]
-}
-
-enum OrderStatus {
-  PENDING
-  CONFIRMED
-  DELIVERED
-  CANCELLED
 }
 
 model OrderBeverage {
@@ -140,7 +133,7 @@ model Payment {
   amount        Float
   categoryEn    String
   categoryAr    String
-  type          String // "debit" or "credit"
+  type          String
   status        String   @default("Pending")
   createdAt     DateTime @default(now())
   user          User     @relation(fields: [userId], references: [id])
@@ -166,4 +159,11 @@ model StaticContent {
   contentAr String   @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  DELIVERED
+  CANCELLED
 }

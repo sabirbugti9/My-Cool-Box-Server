@@ -40,7 +40,7 @@ app.use(limiter);
 
 
 
-
+app.set('trust proxy', 1);
 app.use('/api/users', userRoutes);
 app.use('/api/products', beverageRoutes);
 app.use('/api/products', accessoriesRoutes);
@@ -48,8 +48,7 @@ app.use('/api/products', fruitRoutes);
 app.use('/api', ordersRoutes);
 app.use('/', legelDocRoute);
 app.use('/api', couponRoute);
-
-
+app.use('/uploads', express.static('uploads'));
 
 
 app.post("/api/dummy", async (req, res) => {

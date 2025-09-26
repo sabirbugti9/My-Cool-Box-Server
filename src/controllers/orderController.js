@@ -27,7 +27,7 @@ export const createOrder = async (req, res) => {
             for (const sel of selectedItems) {
                 const item = itemsMap.get(sel.id);
                 if (!item) throw new Error(`Item not found: ${sel.id}`);
-                if (item.stocks < sel.quantity) throw new Error(`Insufficient stock for item: ${sel.id}`);
+
                 const itemPrice = item.price * sel.quantity;
                 itemsTotal += itemPrice;
                 dataArray.push({
@@ -95,28 +95,19 @@ export const createOrder = async (req, res) => {
             await prisma.orderBeverage.create({
                 data: { orderId: order.id, beverageId: ob.itemId, quantity: ob.quantity, price: ob.price, quantityEn: ob.quantityEn, quantityAr: ob.quantityAr },
             });
-            await prisma.beverage.update({
-                where: { id: ob.itemId },
-                data: { stocks: { decrement: ob.quantity } },
-            });
+
         }
         for (const ofr of orderFruitsData) {
             await prisma.orderFruit.create({
                 data: { orderId: order.id, fruitId: ofr.itemId, quantity: ofr.quantity, price: ofr.price, quantityEn: ofr.quantityEn, quantityAr: ofr.quantityAr },
             });
-            await prisma.fruit.update({
-                where: { id: ofr.itemId },
-                data: { stocks: { decrement: ofr.quantity } },
-            });
+
         }
         for (const oa of orderAccessoriesData) {
             await prisma.orderAccessory.create({
                 data: { orderId: order.id, accessoryId: oa.itemId, quantity: oa.quantity, price: oa.price, quantityEn: oa.quantityEn, quantityAr: oa.quantityAr },
             });
-            await prisma.accessory.update({
-                where: { id: oa.itemId },
-                data: { stocks: { decrement: oa.quantity } },
-            });
+
         }
         res.status(200).json({ message: 'Order created successfully', order });
     } catch (error) {
@@ -220,24 +211,7 @@ export const refundOrder = async (req, res) => {
                     status: 'Completed',
                 },
             }),
-            ...order.orderBeverages.map(ob =>
-                prisma.beverage.update({
-                    where: { id: ob.beverageId },
-                    data: { stocks: { increment: ob.quantity } },
-                })
-            ),
-            ...order.orderFruits.map(of =>
-                prisma.fruit.update({
-                    where: { id: of.fruitId },
-                    data: { stocks: { increment: of.quantity } },
-                })
-            ),
-            ...order.orderAccessories.map(oa =>
-                prisma.accessory.update({
-                    where: { id: oa.accessoryId },
-                    data: { stocks: { increment: oa.quantity } },
-                })
-            ),
+
         ]);
         res.json({ message: 'Order cancelled and refund processed successfully' });
     } catch (error) {
