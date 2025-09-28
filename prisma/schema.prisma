@@ -13,7 +13,7 @@ model User {
   name        String
   email       String    @unique
   password    String
-  profilePicture    String
+  profilePicture    String?
   phoneNumber String    @unique
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt

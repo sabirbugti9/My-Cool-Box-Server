@@ -155,7 +155,7 @@ export const sendOTPThroughPhoneNumber = async (req, res) => {
         });
     } catch (error) {
         console.error("Twilio error:", error);
-        res.status(500).json({ error: "Failed to send OTP" });
+        res.status(500).json({ error: error });
     }
 };
 
